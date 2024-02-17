@@ -5,8 +5,9 @@ import { Camera } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
 import OpenAI from "openai"
+import axios from 'axios';
 
-const openai = new OpenAI({apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY})
+const openai = new OpenAI({ apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY })
 
 const LogNewDiscomfortScreen = ({ route }) => {
     const [sound] = useState(new Audio.Sound());
@@ -112,7 +113,6 @@ const LogNewDiscomfortScreen = ({ route }) => {
     const submitPicture = async () => {
         if (cameraRef.current) {
             const photo = await cameraRef.current.takePictureAsync();
-            console.log('Photo taken:', photo.uri);
             setCameraVisible(false); // Close the camera modal
             submitData({ type: 'photo', uri: photo.uri }); // Submit photo data
         }
@@ -141,8 +141,11 @@ const LogNewDiscomfortScreen = ({ route }) => {
                             content: [
                                 {
                                     type: "text",
-                                    text: `Here is an image of an individual pointing at a body part that they currently feel pain in.
-                                    Identify the body part the individual is pointing at, and include only the name of that body part in your response.`
+                                    text: `Here is an image of an individual pointing at a 
+                                    body part that they currently feel pain in.
+                                    Identify the body part the individual is pointing at, 
+                                    and include only the name of that body part in your response 
+                                    as well as which one it is if specified (i.e. right knee, left ear).`
                                 },
                                 {
                                     type: "image_url",
@@ -155,8 +158,6 @@ const LogNewDiscomfortScreen = ({ route }) => {
                     ],
                 })
 
-                console.log(response.choices[0].message.content);
-
                 if (response.choices[0].message.content) {
                     const bodyPart = response.choices[0].message.content
                     // Navigate or perform actions based on the response
@@ -167,7 +168,56 @@ const LogNewDiscomfortScreen = ({ route }) => {
                 }
             }
             else if (data.type === 'audio') {
-                // Handle audio data similarly, if needed
+                // Extract the filename from the URI
+                const uriParts = data.uri.split('/');
+                const fileName = uriParts[uriParts.length - 1];
+
+                // Create a FormData object and append the file
+                const formData = new FormData();
+                formData.append('file', {
+                    uri: data.uri,
+                    type: 'audio/x-m4a',
+                    name: fileName,
+                });
+                formData.append('model', 'whisper-1');
+
+                // Make the API request to OpenAI
+                const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}`,
+                        // 'Content-Type': 'multipart/form-data' is set automatically
+                    },
+                    body: formData,
+                });
+
+                const transcriptionResult = await response.json();
+                
+
+                // Handle the response from OpenAI
+                if (transcriptionResult && transcriptionResult.text) {
+
+                    const transcription = transcriptionResult.text;
+                    // Navigate or perform actions based on the transcription
+                    const response = await openai.chat.completions.create({
+                        model: "gpt-3.5-turbo",
+                        messages: [
+                            {
+                                role: "user",
+                                content: `
+                                Given the following audio transcription, 
+                                identify the body part the individual is referring to, 
+                                and include only the name of that body part in your response 
+                                as well as which one it is if specified (i.e. right knee, left ear).
+                                The transcription is as follows: ${transcription}`
+                            }
+                        ]
+                    });
+                    const bodyPart = response.choices[0].message.content;
+                    navigation.navigate('FollowupNewDiscomfortScreen', { data: bodyPart });
+                } else {
+                    console.error('Failed to transcribe audio: ', transcriptionResult.error);
+                }
             }
         } catch (error) {
             console.error('Error submitting data:', error);
