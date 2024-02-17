@@ -2,14 +2,14 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { Audio } from 'expo-av';
 
-const LogScreen = ({ navigation }) => {
+const LogDiscomfortScreen = ({ navigation }) => {
     const sound = new Audio.Sound();
 
     useEffect(() => {
         // Function to load and play the sound
         async function loadAndPlay() {
             try {
-                await sound.loadAsync(require('../assets/audio/logscreen.mp3'));
+                await sound.loadAsync(require('../assets/audio/LogDiscomfortScreen.mp3'));
                 await sound.playAsync();
             } catch (error) {
                 console.log('Error loading and playing sound:', error);
@@ -37,11 +37,11 @@ const LogScreen = ({ navigation }) => {
             <View style={styles.buttonContainer}>
                 <Button
                     title="New Pain"
-                    onPress={() => navigation.navigate('LogNewScreen')}
+                    onPress={() => navigation.navigate('LogNewDiscomfortScreen')}
                 />
                 <Button
                     title="Existing Pain"
-                    onPress={() => navigation.navigate('LogExistingScreen')}
+                    onPress={() => navigation.navigate('LogExistingDiscomfortScreen')}
                 />
                 <Button
                     title="Cancel"
@@ -63,4 +63,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default LogScreen;
+export default LogDiscomfortScreen;

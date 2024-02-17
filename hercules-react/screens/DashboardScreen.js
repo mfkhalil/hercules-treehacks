@@ -13,7 +13,7 @@ const DashboardScreen = () => {
             <View style={styles.buttonContainer}>
                 <Button
                     title="Log New Pain"
-                    onPress={() => navigation.navigate('LogScreen')}
+                    onPress={() => navigation.navigate('LogDiscomfortScreen')}
                 />
             </View>
         </View>
