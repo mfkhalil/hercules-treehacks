@@ -3,11 +3,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Audio } from 'expo-av';
 
 const UpdateDiscomfortScreen = ({ navigation, route }) => {
-    const { discomforts, setDiscomforts, discomfort } = route.params;
+    const { data } = route.params;
     
     return (
         <View style={styles.container}>
-            <Text>Update Discomfort: {discomfort.title}</Text>
+            <Text>{data}</Text>
         </View>
     );
 };

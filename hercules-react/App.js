@@ -6,6 +6,7 @@ import LogDiscomfortScreen from './screens/LogDiscomfortScreen';
 import LogExistingDiscomfortScreen from './screens/LogExistingDiscomfortScreen';
 import LogNewDiscomfortScreen from './screens/LogNewDiscomfortScreen';
 import UpdateDiscomfortScreen from './screens/UpdateDiscomfortScreen';
+import FollowupNewDiscomfortScreen from './screens/FollowupNewDiscomfortScreen';
 
 const Stack = createStackNavigator();
 
@@ -44,6 +45,10 @@ export default function App() {
         <Stack.Screen
           name="UpdateDiscomfortScreen"
           component={UpdateDiscomfortScreen}
+        />
+        <Stack.Screen
+          name="FollowupNewDiscomfortScreen"
+          component={FollowupNewDiscomfortScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

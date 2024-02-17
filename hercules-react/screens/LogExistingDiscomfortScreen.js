@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Button, ScrollView } from 'react-native';
 import { Audio } from 'expo-av';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
 
-const LogExistingDiscomfortScreen = ({ route }) => {
+const LogExistingDiscomfortScreen = ({ navigation, route }) => {
     const { discomforts, setDiscomforts } = route.params;
     const sound = new Audio.Sound();
-    const navigation = useNavigation(); // Use the useNavigation hook
 
     useEffect(() => {
         async function loadAndPlay() {

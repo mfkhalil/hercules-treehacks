@@ -13,9 +13,13 @@
     "@react-navigation/stack": "^6.3.21",
     "expo": "~50.0.7",
     "expo-av": "^13.10.5",
+    "expo-camera": "^14.0.5",
     "expo-status-bar": "~1.11.1",
+    "openai": "^4.28.0",
     "react": "18.2.0",
-    "react-native": "0.73.4"
+    "react-native": "0.73.4",
+    "react-native-dotenv": "^3.4.10",
+    "react-native-fs": "^2.20.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

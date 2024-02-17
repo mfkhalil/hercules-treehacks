@@ -32,8 +32,7 @@ const LogDiscomfortScreen = ({ navigation }) => {
     }, []);
 
     return (
-        <View style={styles.container}>
-            <Text>Log Screen</Text>
+        <View style={styles.container}> 
             <View style={styles.buttonContainer}>
                 <Button
                     title="New Pain"
