@@ -23,16 +23,13 @@ const FinishLogNewDiscomfortScreen = ({ route }) => {
         // If passing setDiscomforts through props, ensure it's received in this component
         setDiscomforts((prevDiscomforts) => [...prevDiscomforts, newDiscomfort]);
 
-        navigation.navigate('DashboardScreen');
+        navigation.navigate('WoohooScreen');
     };
 
     return (
         <View style={styles.container}>
 
             <View style={styles.top}>
-                <TouchableOpacity style={styles.backArrow} onPress={() => navigation.navigate('FollowUpNewDiscomfortScene')}>
-                    <Ionicons name="arrow-back" size={40} />
-                </TouchableOpacity>
             </View>
             <View style={styles.header}>
                 <Text style={styles.headerText}>Summary.</Text>

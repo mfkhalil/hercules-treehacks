@@ -125,9 +125,6 @@ const FollowUpNewDiscomfortScreen = ({ route }) => {
     return (
         <View style={styles.container}>
             <View style={styles.top}>
-                <TouchableOpacity style={styles.backArrow} onPress={() => navigation.navigate('WhenNewDiscomfortScene')}>
-                    <Ionicons name="arrow-back" size={40} />
-                </TouchableOpacity>
             </View>
             <View style={styles.header}>
                 <Text style={styles.headerText}>Additional details.</Text>

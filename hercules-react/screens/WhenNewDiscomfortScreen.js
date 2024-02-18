@@ -70,9 +70,6 @@ const WhenNewDiscomfortScreen = ({ route }) => {
     return (
         <View style={styles.container}>
             <View style={styles.top}>
-                <TouchableOpacity style={styles.backArrow} onPress={() => navigation.navigate('LogNewDiscomfortScreen')}>
-                    <Ionicons name="arrow-back" size={40} />
-                </TouchableOpacity>
             </View>
             <View style={styles.header}>
                 <Text style={styles.headerText}>It looks like you have pain in your<Text style={styles.boldHeaderText}> {bodyPart}</Text>.</Text>

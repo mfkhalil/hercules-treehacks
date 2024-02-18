@@ -22,9 +22,6 @@ const WrappingUpNewDiscomfortScreen = ({ route }) => {
     return (
         <View style={styles.container}>
         <View style={styles.top}>
-            <TouchableOpacity style={styles.backArrow} onPress={() => navigation.navigate('FollowUpNewDiscomfortScene')}>
-                <Ionicons name="arrow-back" size={40} />
-            </TouchableOpacity>
         </View>
         <View style={styles.header}>
             <Text style={styles.headerText}>Wrapping up.</Text>

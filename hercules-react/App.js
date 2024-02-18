@@ -12,6 +12,7 @@ import DescribeMotionScreen from './screens/DescribeMotionScreen';
 import FollowUpNewDiscomfortScreen from './screens/FollowUpNewDiscomfortScreen';
 import FinishLogNewDiscomfortScreen from './screens/FinishLogNewDiscomfortScreen';
 import WrappingUpNewDiscomfortScreen from './screens/WrappingUpNewDiscomfortScreen';
+import WoohooScreen from './screens/WoohooScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import { DiscomfortProvider } from './contexts/DiscomfortContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -85,6 +86,7 @@ function LogStackNavigator() {
       <Stack.Screen name="FollowUpNewDiscomfortScreen" component={FollowUpNewDiscomfortScreen} />
       <Stack.Screen name="WrappingUpNewDiscomfortScreen" component={WrappingUpNewDiscomfortScreen} />
       <Stack.Screen name="FinishLogNewDiscomfortScreen" component={FinishLogNewDiscomfortScreen} />
+      <Stack.Screen name="WoohooScreen" component={WoohooScreen} />
     </Stack.Navigator>
   );
 }
@@ -105,9 +107,6 @@ function MainStackNavigator() {
           <Stack.Screen
             name="LogDiscomfortScreen"
             component={LogDiscomfortScreen}
-            options={{
-              cardStyle: { backgroundColor: '#FFFDEE' },
-            }}
           />
           <Stack.Screen
             name="LogExistingDiscomfortScreen"
@@ -144,6 +143,10 @@ function MainStackNavigator() {
           <Stack.Screen
             name="WrappingUpNewDiscomfortScreen"
             component={WrappingUpNewDiscomfortScreen}
+          />
+          <Stack.Screen
+            name="WoohooScreen"
+            component={WoohooScreen}
           />
     </Stack.Navigator>
   );

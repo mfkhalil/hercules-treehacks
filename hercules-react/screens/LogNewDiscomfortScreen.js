@@ -226,9 +226,6 @@ const LogNewDiscomfortScreen = ({ route }) => {
     return (
         <View style={styles.container}>
             <View style={styles.top}>
-                <TouchableOpacity style={styles.backArrow} onPress={() => navigation.navigate('LogDiscomfortScreen')}>
-                    <Ionicons name="arrow-back" size={40} />
-                </TouchableOpacity>
             </View>
             <View style={styles.header}>
                 <Text style={styles.headerText}>Let's log your symptoms.</Text>
