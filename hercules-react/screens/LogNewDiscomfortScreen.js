@@ -50,6 +50,12 @@ const LogNewDiscomfortScreen = ({ route }) => {
         if (isRecording) {
             setIsRecording(false);
             await recording.stopAndUnloadAsync();
+            await Audio.setAudioModeAsync({
+                allowsRecordingIOS: false,
+                playsInSilentModeIOS: true,
+                staysActiveInBackground: true,
+                shouldDuckAndroid: true,
+            });
             setRecordingReady(true);
         } else {
             const { status } = await Audio.requestPermissionsAsync();
@@ -158,7 +164,7 @@ const LogNewDiscomfortScreen = ({ route }) => {
                 if (response.choices[0].message.content) {
                     const bodyPart = response.choices[0].message.content
                     // Navigate or perform actions based on the response
-                    navigation.navigate('WhenNewDiscomfortScreen', { bodyPart: bodyPart });
+                    navigation.navigate('WhenNewDiscomfortScreen', { bodyPart: bodyPart.toLowerCase() });
                 } else {
                     // Handle non-2xx responses
                     console.error('API responded with an error');
@@ -211,7 +217,7 @@ const LogNewDiscomfortScreen = ({ route }) => {
                         ]
                     });
                     const bodyPart = response.choices[0].message.content;
-                    navigation.navigate('WhenNewDiscomfortScreen', { bodyPart: bodyPart });
+                    navigation.navigate('WhenNewDiscomfortScreen', { bodyPart: bodyPart.toLowerCase() });
                 } else {
                     console.error('Failed to transcribe audio: ', transcriptionResult.error);
                 }
@@ -234,7 +240,7 @@ const LogNewDiscomfortScreen = ({ route }) => {
                 <Text style={styles.bodyText}>Where does it hurt? Tell me about it, or snap a photo of you pointing to the area.</Text>
             </View>
             <Modal visible={cameraVisible} animationType="slide">
-                <Camera style={{ width: deviceWidth, height: deviceWidth }} type={Camera.Constants.Type.front} ref={cameraRef}>
+                <Camera style={{ width: deviceWidth, height: deviceWidth, marginTop: 200 }} type={Camera.Constants.Type.front} ref={cameraRef}>
                     <View style={styles.cameraContainer}>
                         {isCountingDown && <Text style={styles.countdownText}>{countdown}</Text>}
                         {!isCountingDown && <TouchableOpacity onPress={startCountdown} style={styles.cameraButton}>

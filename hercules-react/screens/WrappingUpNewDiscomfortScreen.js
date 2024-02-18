@@ -19,6 +19,28 @@ const WrappingUpNewDiscomfortScreen = ({ route }) => {
         } : undefined;
     }, [sound]);
 
+    useEffect(() => {
+        async function loadAndPlay() {
+            try {
+                await sound.loadAsync(require('../assets/audio/WrappingUpNewDiscomfortScreen.mp3'));
+                await sound.playAsync();
+            } catch (error) {
+                console.log('Error loading and playing sound:', error);
+            }
+        }
+
+        loadAndPlay();
+
+        return () => {
+            async function stopAndUnload() {
+                await sound.stopAsync();
+                await sound.unloadAsync();
+            }
+
+            stopAndUnload();
+        };
+    }, []);
+
     return (
         <View style={styles.container}>
         <View style={styles.top}>

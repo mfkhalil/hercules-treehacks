@@ -6,6 +6,29 @@ import { Ionicons } from '@expo/vector-icons';
 
 const WoohooScreen = () => {
     const navigation = useNavigation();
+    const sound = new Audio.Sound();
+
+    useEffect(() => {
+        async function loadAndPlay() {
+            try {
+                await sound.loadAsync(require('../assets/audio/Woohoo.mp3'));
+                await sound.playAsync();
+            } catch (error) {
+                console.log('Error loading and playing sound:', error);
+            }
+        }
+
+        loadAndPlay();
+
+        return () => {
+            async function stopAndUnload() {
+                await sound.stopAsync();
+                await sound.unloadAsync();
+            }
+
+            stopAndUnload();
+        };
+    }, []);
 
     return (
         <View style={styles.container}>

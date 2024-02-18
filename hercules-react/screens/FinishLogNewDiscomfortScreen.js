@@ -2,12 +2,36 @@ import React, {useState, useEffect} from 'react';
 import { View, Text, StyleSheet, Button, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDiscomforts } from '../contexts/DiscomfortContext';
+import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 
 const FinishLogNewDiscomfortScreen = ({ route }) => {
     const { bodyPart, selectedOptions, motion, followUp, painLevel } = route.params;
     const navigation = useNavigation();
     const { discomforts, setDiscomforts } = useDiscomforts();
+    const sound = new Audio.Sound();
+
+    useEffect(() => {
+        async function loadAndPlay() {
+            try {
+                await sound.loadAsync(require('../assets/audio/FinishLogNewDiscomfortScreen.mp3'));
+                await sound.playAsync();
+            } catch (error) {
+                console.log('Error loading and playing sound:', error);
+            }
+        }
+
+        loadAndPlay();
+
+        return () => {
+            async function stopAndUnload() {
+                await sound.stopAsync();
+                await sound.unloadAsync();
+            }
+
+            stopAndUnload();
+        };
+    }, []);
 
     const finishLogging = () => {
         const newDiscomfort = {

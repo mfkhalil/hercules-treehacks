@@ -18,6 +18,9 @@ import { DiscomfortProvider } from './contexts/DiscomfortContext';
 import { Ionicons } from '@expo/vector-icons';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import { LogBox, TouchableOpacity } from 'react-native';
+
+LogBox.ignoreAllLogs();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -64,7 +67,15 @@ function BottomTabNavigator() {
       })}
     >
       <Tab.Screen name="Summary" component={MainStackNavigator} />
-      <Tab.Screen name="Log" component={LogStackNavigator} />
+      <Tab.Screen name="Log" component={LogStackNavigator} 
+      listeners={({ navigation, route }) => ({
+          tabPress: e => {
+            // Prevent default action
+            e.preventDefault();
+            // Navigate to the initial route of the Log Stack
+            navigation.navigate('LogDiscomfortScreen');
+          },
+        })}/>
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

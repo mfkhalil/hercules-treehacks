@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { Audio } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
 import { useDiscomforts } from '../contexts/DiscomfortContext';
+import moment from 'moment';
 
 const LogExistingDiscomfortScreen = () => {
     const sound = new Audio.Sound();
@@ -36,13 +37,16 @@ const LogExistingDiscomfortScreen = () => {
             <View style={styles.top}>
             </View>
             <View style={styles.header}>
-                <Text style={styles.headerText}>Wrapping up.</Text>
+                <Text style={styles.headerText}>Update an entry.</Text>
+            </View>
+            <View style={styles.body}>
+                <Text style={styles.bodyText}>Select an entry to update.</Text>
             </View>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {discomforts.map((discomfort, index) => (
                     <View key={index} style={styles.discomfortItem}>
                         <Text style={styles.title}>{discomfort.bodyPart}</Text>
-                        <Text style={styles.date}>{discomfort.date}</Text>
+                        <Text style={styles.date}>{moment(discomfort.date).format('MMMM Do YYYY')}</Text>
                         <TouchableOpacity
                             style={styles.button}
                             onPress={() => navigation.navigate('UpdateDiscomfortScreen', { discomfort })}>
@@ -72,7 +76,8 @@ const styles = StyleSheet.create({
     backArrow: {
         marginLeft: 18,
         width: '10%',
-    }, header: {
+    }, 
+    header: {
         width: '100%',
         height: '13%',
         justifyContent: 'center',
@@ -83,21 +88,31 @@ const styles = StyleSheet.create({
         marginLeft: 30,
         marginRight: 30
     },
+    body: {
+        width: '100%',
+        justifyContent: 'flex-end',
+        width: '100%',
+    },
+    bodyText: {
+        fontFamily: 'ApercuRegular',
+        fontSize: 20,
+        marginLeft: 30,
+        marginRight: 30
+    },
     scrollContainer: {
         flexGrow: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         alignItems: 'center',
-        width: '100%', // Match the width for uniformity
-        height: '80%', // Match the height for uniformity
+        width: '100%', 
+        marginTop: 20, // Add margin for spacing
     },
     discomfortItem: {
         marginVertical: 10,
         alignItems: 'center',
-        width: '88%', // Match the width for uniformity
         backgroundColor: '#292929', // Match the button color for background
         borderRadius: 15, // Match the border radius
         paddingVertical: 18, // Add padding for spacing
-        paddingHorizontal: 25, // Add padding for spacing
+        paddingHorizontal: 60, // Add padding for spacing
         marginBottom: 10, // Adjust the margin for spacing
     },
     title: {

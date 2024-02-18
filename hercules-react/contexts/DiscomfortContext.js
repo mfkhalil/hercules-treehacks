@@ -7,16 +7,16 @@ export const useDiscomforts = () => useContext(DiscomfortContext);
 export const DiscomfortProvider = ({ children }) => {
     const [discomforts, setDiscomforts] = useState([
         {
-            bodyPart: 'Neck',
-            whenPain: 'Morning, Evening',
+            bodyPart: 'neck',
+            whenPain: 'All the time',
             motion: 'Turning head',
             followUp: 'Ice pack',
             painLevel: 5,
             date: new Date().toISOString(),
         },
         {
-            bodyPart: 'Lower back',
-            whenPain: 'Morning, Evening',
+            bodyPart: 'lower back',
+            whenPain: 'When I do a certain motion',
             motion: 'Bending over',
             followUp: 'Heating pad',
             painLevel: 7,

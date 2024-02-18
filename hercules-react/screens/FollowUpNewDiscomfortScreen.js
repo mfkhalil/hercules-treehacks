@@ -22,10 +22,38 @@ const FollowUpNewDiscomfortScreen = ({ route }) => {
         } : undefined;
     }, [sound]);
 
+    useEffect(() => {
+        async function loadAndPlay() {
+            try {
+                await sound.loadAsync(require('../assets/audio/FollowUpNewDiscomfortScreen.mp3'));
+                await sound.playAsync();
+            } catch (error) {
+                console.log('Error loading and playing sound:', error);
+            }
+        }
+
+        loadAndPlay();
+
+        return () => {
+            async function stopAndUnload() {
+                await sound.stopAsync();
+                await sound.unloadAsync();
+            }
+
+            stopAndUnload();
+        };
+    }, []);
+
     const handleAudioRecording = async () => {
         if (isRecording) {
             setIsRecording(false);
             await recording.stopAndUnloadAsync();
+            await Audio.setAudioModeAsync({
+                allowsRecordingIOS: false,
+                playsInSilentModeIOS: true,
+                staysActiveInBackground: true,
+                shouldDuckAndroid: true,
+            });
             setRecordingReady(true);
         } else {
             const { status } = await Audio.requestPermissionsAsync();
