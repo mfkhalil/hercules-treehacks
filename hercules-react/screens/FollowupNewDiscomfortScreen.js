@@ -1,44 +1,68 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
 import OpenAI from "openai";
+import { Ionicons } from '@expo/vector-icons';
 
 const openai = new OpenAI({ apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY });
 
 const FollowUpNewDiscomfortScreen = ({ route }) => {
     const { bodyPart, selectedOptions, motion } = route.params;
     const navigation = useNavigation();
-    const [painLevel, setPainLevel] = useState(null);
+    const [sound] = useState(new Audio.Sound());
     const [recording, setRecording] = useState();
     const [isRecording, setIsRecording] = useState(false);
+    const [recordingReady, setRecordingReady] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const startRecording = async () => {
-        setLoading(true);
-        try {
-            await Audio.requestPermissionsAsync();
-            await Audio.setAudioModeAsync({
-                allowsRecordingIOS: true,
-                playsInSilentModeIOS: true,
-            });
-            const newRecording = new Audio.Recording();
-            await newRecording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
-            await newRecording.startAsync();
-            setRecording(newRecording);
-            setIsRecording(true);
-        } catch (error) {
-            console.log('Failed to start recording:', error);
+    useEffect(() => {
+        return sound ? () => {
+            sound.unloadAsync();
+        } : undefined;
+    }, [sound]);
+
+    const handleAudioRecording = async () => {
+        if (isRecording) {
+            setIsRecording(false);
+            await recording.stopAndUnloadAsync();
+            setRecordingReady(true);
+        } else {
+            const { status } = await Audio.requestPermissionsAsync();
+            if (status === 'granted') {
+                try {
+                    await Audio.setAudioModeAsync({
+                        allowsRecordingIOS: true,
+                        playsInSilentModeIOS: true,
+                        staysActiveInBackground: true,
+                        shouldDuckAndroid: true,
+                    });
+                    setIsRecording(true);
+                    setRecordingReady(false);
+                    const newRecording = new Audio.Recording();
+                    await newRecording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+                    await newRecording.startAsync();
+                    setRecording(newRecording);
+                } catch (error) {
+                    console.log('Error setting audio mode or starting recording:', error);
+                    setIsRecording(false);
+                }
+            } else {
+                console.log('Audio recording permissions were not granted.');
+            }
         }
-        setLoading(false);
     };
 
-    const stopRecording = async () => {
-        setIsRecording(false);
+
+    const handleDeleteRecording = () => {
+        setRecording(undefined);
+        setRecordingReady(false);
+    };
+
+    const submitAudio = async () => {
         setLoading(true);
         try {
-            await recording.stopAndUnloadAsync();
-            const uri = recording.getURI();
+            const uri = await recording.getURI();
             const uriParts = uri.split('/');
             const fileName = uriParts[uriParts.length - 1];
 
@@ -63,6 +87,7 @@ const FollowUpNewDiscomfortScreen = ({ route }) => {
 
             const transcriptionResult = await response.json();
 
+
             // Handle the response from OpenAI
             if (transcriptionResult && transcriptionResult.text) {
 
@@ -74,47 +99,67 @@ const FollowUpNewDiscomfortScreen = ({ route }) => {
                         {
                             role: "user",
                             content: `
-                                In the following audio transcription, 
-                                an individual is describing additional details about their discomfort.
-                                The individual has reported that they have hurt their ${bodyPart} 
-                                and that it hurts when they ${selectedOptions.join(', ')}.
-                                ${motion ? `They also reported that it hurts when they ${motion}.` : ''}
-                                They rated their pain as a ${painLevel} out of 10.
-                                In your response, provide a short concise summary of any additional details mentioned in the audio.
-                                The transcription is: ${transcription}
-                                `
+                            In the following audio transcription, 
+                            an individual is describing additional details about their discomfort.
+                            The individual has reported that they have hurt their ${bodyPart} 
+                            and that it hurts when they ${selectedOptions.join(', ')}.
+                            ${motion ? `They also reported that it hurts when they ${motion}.` : ''}
+                            In your response, provide a short concise summary of any additional details mentioned in the audio.
+                            The transcription is: ${transcription}
+                            `
                         }
                     ]
                 });
-                const followup = response.choices[0].message.content;
-                navigation.navigate('FinishLogNewDiscomfortScreen', { bodyPart: bodyPart, selectedOptions: selectedOptions, motion: motion, followup: followup, painLevel: painLevel });
+                const followUp = response.choices[0].message.content;
+                navigation.navigate('WrappingUpNewDiscomfortScreen', { bodyPart: bodyPart, selectedOptions: selectedOptions, motion: motion, followUp: followUp});
             } else {
                 console.error('Failed to transcribe audio: ', transcriptionResult.error);
             }
         } catch (error) {
-            console.log('Could not stop recording:', error);
+            console.error('Error submitting audio for processing:', error);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (
         <View style={styles.container}>
-            <Text>{bodyPart}</Text>
-            <Text>{selectedOptions.join(', ')}</Text>
-            <Text>{motion}</Text>
-            <Text>Rate your pain on a scale of 1 to 10:</Text>
-            <View style={styles.painScaleContainer}>
-                {[...Array(10).keys()].map((index) => (
-                    <TouchableOpacity
-                        key={index}
-                        style={styles.painLevelButton(painLevel === index + 1)}
-                        onPress={() => setPainLevel(index + 1)}
-                    >
-                        <Text>{index + 1}</Text>
-                    </TouchableOpacity>
-                ))}
+            <View style={styles.top}>
+                <TouchableOpacity style={styles.backArrow} onPress={() => navigation.navigate('WhenNewDiscomfortScene')}>
+                    <Ionicons name="arrow-back" size={40} />
+                </TouchableOpacity>
             </View>
-            <Button title={isRecording ? "Stop Recording" : "Record Follow-up"} onPress={isRecording ? stopRecording : startRecording} />
+            <View style={styles.header}>
+                <Text style={styles.headerText}>Additional details.</Text>
+            </View>
+            <View style={styles.body}>
+                <Text style={styles.bodyText}>You've been active with <Text style={styles.boldBodyText}>hiking</Text> today, as noticed by your wearable.</Text>
+                <Text style={styles.bodyText}>Would you like to add any details about how you're feeling?</Text>
+            </View>
+            {!loading && !recordingReady && (
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity onPress={handleAudioRecording} style={styles.button}>
+                        <Text style={styles.buttonText}>{isRecording ? "Stop Recording" : "Tell Hercules"}</Text>
+                        <Ionicons name="mic" size={32} color="white" />
+                    </TouchableOpacity>
+                    {!isRecording && (
+                    <TouchableOpacity onPress={() => {navigation.navigate('WrappingUpNewDiscomfortScreen', { bodyPart: bodyPart, selectedOptions: selectedOptions, motion: motion, followUp: null})}} style={styles.button}>
+                        <Text style={styles.buttonText}>No, I'm all set.</Text>
+                    </TouchableOpacity>
+                    )}
+                </View>
+            )}
+            {recordingReady && (
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity onPress={submitAudio} style={styles.button}>
+                        <Text style={styles.buttonText}>Submit Recording</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleDeleteRecording} style={styles.button}>
+                        <Text style={styles.buttonText}>Delete Recording</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
             {loading && <ActivityIndicator size="large" />}
         </View>
     );
@@ -123,19 +168,71 @@ const FollowUpNewDiscomfortScreen = ({ route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#FFFDEE',
+        flexDirection: 'column',
+        height: '100%',
+        justifyContent: 'flex-start',
     },
-    painScaleContainer: {
-        flexDirection: 'row',
-        marginTop: 20,
+    top: {
+        width: '100%',
+        height: '12%',
+        justifyContent: 'flex-end',
+    },
+    backArrow: {
+        marginLeft: 18,
+        width: '10%',
+    }, header: {
+        width: '100%',
+        height: '13%',
+        justifyContent: 'center',
+    },
+    headerText: {
+        fontFamily: 'NohemiRegular',
+        fontSize: 35,
+        marginLeft: 30,
+        marginRight: 30
+    },
+    body: {
+        width: '100%',
+        height: '15%',
+        justifyContent: 'flex-end',
+        width: '100%',
+    },
+    bodyText: {
+        fontFamily: 'ApercuRegular',
+        fontSize: 20,
+        marginLeft: 30,
+        marginRight: 30
+    },
+    boldBodyText: {
+        fontFamily: 'ApercuBold',
+    },
+    buttonContainer: {
+        width: '100%',
+        height: '40%',
+        alignItems: 'center',
         marginBottom: 20,
+        marginTop: 30,
     },
-    painLevelButton: (isSelected) => ({
-        padding: 10,
-        margin: 2,
-        backgroundColor: isSelected ? 'skyblue' : 'lightgrey',
-    }),
+    button: {
+        width: '88%',
+        marginBottom: 10,
+        backgroundColor: '#292929',
+        borderRadius: 15,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingRight: 30
+    },
+    buttonText: {
+        fontFamily: 'ApercuRegular',
+        fontSize: 20,
+        color: 'white',
+        textAlign: 'center',
+        padding: 18,
+        paddingLeft: 25
+    },
 });
 
 export default FollowUpNewDiscomfortScreen;

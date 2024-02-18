@@ -6,8 +6,11 @@ import { useNavigation } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
 import OpenAI from "openai"
 import { Ionicons } from '@expo/vector-icons';
+import { Dimensions } from 'react-native';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 const openai = new OpenAI({ apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY })
+const deviceWidth = Dimensions.get('window').width;
 
 const LogNewDiscomfortScreen = ({ route }) => {
     const [sound] = useState(new Audio.Sound());
@@ -96,8 +99,19 @@ const LogNewDiscomfortScreen = ({ route }) => {
     const submitPicture = async () => {
         if (cameraRef.current) {
             const photo = await cameraRef.current.takePictureAsync();
+            // Assuming you want the square to be as large as possible and centered
+            const cropSize = Math.min(photo.width, photo.height);
+            const cropOriginX = (photo.width - cropSize) / 2;
+            const cropOriginY = (photo.height - cropSize) / 2;
+            
+            const croppedPhoto = await ImageManipulator.manipulateAsync(
+                photo.uri,
+                [{ crop: { originX: cropOriginX, originY: cropOriginY, width: cropSize, height: cropSize } }],
+                { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+            );
+            
             setCameraVisible(false); // Close the camera modal
-            submitData({ type: 'photo', uri: photo.uri }); // Submit photo data
+            submitData({ type: 'photo', uri: croppedPhoto.uri }); // Submit cropped photo data
         }
     };
 
@@ -127,8 +141,8 @@ const LogNewDiscomfortScreen = ({ route }) => {
                                     text: `Here is an image of an individual pointing at a 
                                     body part that they currently feel pain in.
                                     Identify the body part the individual is pointing at, 
-                                    and include only the name of that body part in your response 
-                                    as well as which one it is if specified (i.e. right knee, left ear).`
+                                    and include only the name of that body part in your response.
+                                    Your response should be at most 3 words long.`
                                 },
                                 {
                                     type: "image_url",
@@ -223,7 +237,7 @@ const LogNewDiscomfortScreen = ({ route }) => {
                 <Text style={styles.bodyText}>Where does it hurt? Tell me about it, or snap a photo of you pointing to the area.</Text>
             </View>
             <Modal visible={cameraVisible} animationType="slide">
-                <Camera style={styles.camera} type={Camera.Constants.Type.front} ref={cameraRef}>
+                <Camera style={{ width: deviceWidth, height: deviceWidth }} type={Camera.Constants.Type.front} ref={cameraRef}>
                     <View style={styles.cameraContainer}>
                         {isCountingDown && <Text style={styles.countdownText}>{countdown}</Text>}
                         {!isCountingDown && <TouchableOpacity onPress={startCountdown} style={styles.cameraButton}>
@@ -340,13 +354,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         padding: 18,
         paddingLeft: 25
-    },
-    camera: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
     },
     cameraContainer: {
         flex: 1,
