@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Button, ScrollView } from 'react-native';
 import { Audio } from 'expo-av';
+import { useNavigation } from '@react-navigation/native';
+import { useDiscomforts } from '../contexts/DiscomfortContext';
 
-const LogExistingDiscomfortScreen = ({ navigation, route }) => {
-    const { discomforts, setDiscomforts } = route.params;
+const LogExistingDiscomfortScreen = () => {
     const sound = new Audio.Sound();
+    const navigation = useNavigation();
+    const { discomforts, setDiscomforts } = useDiscomforts();
 
     useEffect(() => {
         async function loadAndPlay() {
@@ -32,7 +35,7 @@ const LogExistingDiscomfortScreen = ({ navigation, route }) => {
         <ScrollView contentContainerStyle={styles.container}>
             {discomforts.map((discomfort, index) => (
                 <View key={index} style={styles.discomfortItem}>
-                    <Text style={styles.title}>{discomfort.title}</Text>
+                    <Text style={styles.title}>{discomfort.bodyPart}</Text>
                     <Text style={styles.date}>{discomfort.date}</Text>
                     <Button
                         title="Update"

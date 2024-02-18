@@ -1,9 +1,11 @@
 import React, { useEffect }  from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Audio } from 'expo-av';
+import { useNavigation } from '@react-navigation/native';
 
-const UpdateDiscomfortScreen = ({ navigation, route }) => {
-    const { discomforts, setDiscomforts, discomfort } = route.params;
+const UpdateDiscomfortScreen = ({ route }) => {
+    const { discomfort } = route.params;
+    const navigation = useNavigation();
     
     return (
         <View style={styles.container}>

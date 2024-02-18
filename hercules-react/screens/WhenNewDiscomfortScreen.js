@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Audio } from 'expo-av';
 
-const WhenNewDiscomfortScreen = (route) => {
-    const { navigation, bodyPart } = route.params;
+const WhenNewDiscomfortScreen = ({ route }) => {
+    const { bodyPart } = route.params;
+    const navigation = useNavigation();
     const [selections, setSelections] = useState({
         allTheTime: false,
         whenPressed: false,
@@ -44,11 +46,23 @@ const WhenNewDiscomfortScreen = (route) => {
         const selectedOptions = Object.entries(selections)
             .filter(([key, value]) => value)
             .map(([key]) => key);
-
+        // Format the options to be full phrases
+        const formattedOptions = selectedOptions.map(option => {
+            switch (option) {
+                case 'allTheTime':
+                    return 'All the time';
+                case 'whenPressed':
+                    return 'When I press on it';
+                case 'certainMotion':
+                    return 'When I do a certain motion';
+                default:
+                    return '';
+            }
+        });
         if (selections.certainMotion) {
-            navigation.navigate('RecordMotionScreen', { bodyPart, selectedOptions });
+            navigation.navigate('DescribeMotionScreen', { bodyPart, selectedOptions: formattedOptions });
         } else {
-            navigation.navigate('FollowUpNewDiscomfortScreen', { bodyPart, selectedOptions });
+            navigation.navigate('FollowUpNewDiscomfortScreen', { bodyPart, selectedOptions: formattedOptions, motion: null });
         }
     };
 
@@ -94,6 +108,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
+        backgroundColor: 'rgba(255, 253, 238, 1)',
     },
     option: {
         backgroundColor: '#f0f0f0',

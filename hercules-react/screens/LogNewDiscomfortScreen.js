@@ -161,7 +161,7 @@ const LogNewDiscomfortScreen = ({ route }) => {
                 if (response.choices[0].message.content) {
                     const bodyPart = response.choices[0].message.content
                     // Navigate or perform actions based on the response
-                    navigation.navigate('FollowupNewDiscomfortScreen', { data: bodyPart });
+                    navigation.navigate('WhenNewDiscomfortScreen', { bodyPart: bodyPart });
                 } else {
                     // Handle non-2xx responses
                     console.error('API responded with an error');
@@ -214,7 +214,7 @@ const LogNewDiscomfortScreen = ({ route }) => {
                         ]
                     });
                     const bodyPart = response.choices[0].message.content;
-                    navigation.navigate('FollowupNewDiscomfortScreen', { data: bodyPart });
+                    navigation.navigate('WhenNewDiscomfortScreen', { bodyPart: bodyPart });
                 } else {
                     console.error('Failed to transcribe audio: ', transcriptionResult.error);
                 }

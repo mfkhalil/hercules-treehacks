@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const DashboardScreen = () => {
     const navigation = useNavigation();
-
+    
     return (
         <View style={styles.container}>
             <View style={styles.dashboard}>

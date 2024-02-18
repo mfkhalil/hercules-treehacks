@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Audio } from 'expo-av';
 
-const LogDiscomfortScreen = ({ navigation }) => {
+const LogDiscomfortScreen = () => {
     const sound = new Audio.Sound();
+    const navigation = useNavigation();
 
     useEffect(() => {
         // Function to load and play the sound
@@ -56,6 +58,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#FFFDEE',
     },
     buttonContainer: {
         marginTop: 20,
