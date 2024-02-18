@@ -13,15 +13,7 @@ export const DiscomfortProvider = ({ children }) => {
             followUp: 'Ice pack',
             painLevel: 5,
             date: new Date().toISOString(),
-        },
-        {
-            bodyPart: 'lower back',
-            whenPain: 'When I do a certain motion',
-            motion: 'Bending over',
-            followUp: 'Heating pad',
-            painLevel: 7,
-            date: new Date().toISOString(),
-        },
+        }
     ]);
 
     return (
