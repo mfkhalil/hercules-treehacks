@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'rea
 import { Audio } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
 import OpenAI from "openai";
+import { Ionicons } from '@expo/vector-icons';
 
 const openai = new OpenAI({ apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY });
 
@@ -12,7 +13,6 @@ const DescribeMotionScreen = ({ route }) => {
     const [sound] = useState(new Audio.Sound());
     const [recording, setRecording] = useState();
     const [isRecording, setIsRecording] = useState(false);
-    const [recordingDuration, setRecordingDuration] = useState(0);
     const [recordingReady, setRecordingReady] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -26,31 +26,43 @@ const DescribeMotionScreen = ({ route }) => {
         if (isRecording) {
             setIsRecording(false);
             await recording.stopAndUnloadAsync();
-            const uri = recording.getURI();
-            if (uri) {
-                setRecordingReady(true);
-                submitAudio(uri);
-            }
+            setRecordingReady(true);
         } else {
             const { status } = await Audio.requestPermissionsAsync();
             if (status === 'granted') {
-                await Audio.setAudioModeAsync({
-                    allowsRecordingIOS: true,
-                    playsInSilentModeIOS: true,
-                });
-                setIsRecording(true);
-                setRecordingReady(false);
-                const newRecording = new Audio.Recording();
-                await newRecording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
-                await newRecording.startAsync();
-                setRecording(newRecording);
+                try {
+                    await Audio.setAudioModeAsync({
+                        allowsRecordingIOS: true,
+                        playsInSilentModeIOS: true,
+                        staysActiveInBackground: true,
+                        shouldDuckAndroid: true,
+                    });
+                    setIsRecording(true);
+                    setRecordingReady(false);
+                    const newRecording = new Audio.Recording();
+                    await newRecording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+                    await newRecording.startAsync();
+                    setRecording(newRecording);
+                } catch (error) {
+                    console.log('Error setting audio mode or starting recording:', error);
+                    setIsRecording(false);
+                }
+            } else {
+                console.log('Audio recording permissions were not granted.');
             }
         }
     };
 
-    const submitAudio = async (uri) => {
+
+    const handleDeleteRecording = () => {
+        setRecording(undefined);
+        setRecordingReady(false);
+    };
+
+    const submitAudio = async () => {
         setLoading(true);
         try {
+            const uri = await recording.getURI();
             const uriParts = uri.split('/');
             const fileName = uriParts[uriParts.length - 1];
 
@@ -112,11 +124,37 @@ const DescribeMotionScreen = ({ route }) => {
 
     return (
         <View style={styles.container}>
-            <Text>Describe your motion by recording audio</Text>
-            <TouchableOpacity onPress={handleAudioRecording} style={styles.button}>
-                <Text>{isRecording ? "Stop Recording" : "Start Recording"}</Text>
-            </TouchableOpacity>
-            {recordingReady && <Text>Recording ready to be submitted</Text>}
+            <View style={styles.top}>
+                <TouchableOpacity style={styles.backArrow} onPress={() => navigation.navigate('WhenNewDiscomfortScene')}>
+                    <Ionicons name="arrow-back" size={40} />
+                </TouchableOpacity>
+            </View>
+            <View style={styles.header}>
+                <Text style={styles.headerText}>Describe the motion.</Text>
+            </View>
+            <View style={styles.body}>
+                <Text style={styles.bodyText}>What motions cause you pain? Tell me about it.</Text>
+            </View>
+            {!loading && !recordingReady && (
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity onPress={handleAudioRecording} style={styles.button}>
+                        <Text style={styles.buttonText}>{isRecording ? "Stop Recording" : "Tell Hercules"}</Text>
+                        <Ionicons name="mic" size={32} color="white" />
+                    </TouchableOpacity>
+                </View>
+            )}
+            {recordingReady && (
+
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity onPress={submitAudio} style={styles.button}>
+                        <Text style={styles.buttonText}>Submit Recording</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleDeleteRecording} style={styles.button}>
+                        <Text style={styles.buttonText}>Delete Recording</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
             {loading && <ActivityIndicator size="large" />}
         </View>
     );
@@ -125,13 +163,67 @@ const DescribeMotionScreen = ({ route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#FFFDEE',
+        flexDirection: 'column',
+        height: '100%',
+        justifyContent: 'flex-start',
+    },
+    top: {
+        width: '100%',
+        height: '12%',
+        justifyContent: 'flex-end',
+    },
+    backArrow: {
+        marginLeft: 18,
+        width: '10%',
+    }, header: {
+        width: '100%',
+        height: '13%',
+        justifyContent: 'center',
+    },
+    headerText: {
+        fontFamily: 'NohemiRegular',
+        fontSize: 35,
+        marginLeft: 30,
+        marginRight: 30
+    },
+    body: {
+        width: '100%',
+        height: '15%',
+        justifyContent: 'flex-end',
+        width: '100%',
+    },
+    bodyText: {
+        fontFamily: 'ApercuRegular',
+        fontSize: 20,
+        marginLeft: 30,
+        marginRight: 30
+    },
+    buttonContainer: {
+        width: '100%',
+        height: '40%',
+        alignItems: 'center',
+        marginBottom: 20,
+        marginTop: 30,
     },
     button: {
-        marginTop: 20,
-        padding: 20,
-        backgroundColor: 'lightblue',
+        width: '88%',
+        marginBottom: 10,
+        backgroundColor: '#292929',
+        borderRadius: 15,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingRight: 30
+    },
+    buttonText: {
+        fontFamily: 'ApercuRegular',
+        fontSize: 20,
+        color: 'white',
+        textAlign: 'center',
+        padding: 18,
+        paddingLeft: 25
     },
 });
 

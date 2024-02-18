@@ -5,7 +5,7 @@ import { Camera } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
 import OpenAI from "openai"
-import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
 
 const openai = new OpenAI({ apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY })
 
@@ -13,8 +13,6 @@ const LogNewDiscomfortScreen = ({ route }) => {
     const [sound] = useState(new Audio.Sound());
     const [recording, setRecording] = useState();
     const [isRecording, setIsRecording] = useState(false);
-    const [startTime, setStartTime] = useState(null);
-    const [recordingDuration, setRecordingDuration] = useState(0);
     const [recordingReady, setRecordingReady] = useState(false);
     const [cameraVisible, setCameraVisible] = useState(false);
     const [countdown, setCountdown] = useState(0)
@@ -45,22 +43,10 @@ const LogNewDiscomfortScreen = ({ route }) => {
         };
     }, []);
 
-    const updateRecordingDuration = () => {
-        if (recording) {
-            setRecordingDuration(recording._finalDurationMillis / 1000); // Convert milliseconds to seconds
-        }
-    };
-
     const handleAudioRecording = async () => {
         if (isRecording) {
             setIsRecording(false);
-            const endTime = new Date(); // Capture end time
             await recording.stopAndUnloadAsync();
-            // Ensure startTime is not null to avoid runtime errors
-            if (startTime) {
-                const duration = (endTime - startTime) / 1000; // Calculate duration in seconds
-                setRecordingDuration(duration);
-            }
             setRecordingReady(true);
         } else {
             const { status } = await Audio.requestPermissionsAsync();
@@ -74,12 +60,10 @@ const LogNewDiscomfortScreen = ({ route }) => {
                     });
                     setIsRecording(true);
                     setRecordingReady(false);
-                    setRecordingDuration(0); // Reset duration
                     const newRecording = new Audio.Recording();
                     await newRecording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
                     await newRecording.startAsync();
                     setRecording(newRecording);
-                    setStartTime(new Date()); // Capture start time
                 } catch (error) {
                     console.log('Error setting audio mode or starting recording:', error);
                     setIsRecording(false);
@@ -92,7 +76,6 @@ const LogNewDiscomfortScreen = ({ route }) => {
 
     const handleDeleteRecording = () => {
         setRecording(undefined);
-        setRecordingDuration(0);
         setRecordingReady(false);
     };
 
@@ -192,7 +175,7 @@ const LogNewDiscomfortScreen = ({ route }) => {
                 });
 
                 const transcriptionResult = await response.json();
-                
+
 
                 // Handle the response from OpenAI
                 if (transcriptionResult && transcriptionResult.text) {
@@ -228,12 +211,23 @@ const LogNewDiscomfortScreen = ({ route }) => {
 
     return (
         <View style={styles.container}>
+            <View style={styles.top}>
+                <TouchableOpacity style={styles.backArrow} onPress={() => navigation.navigate('LogDiscomfortScreen')}>
+                    <Ionicons name="arrow-back" size={40} />
+                </TouchableOpacity>
+            </View>
+            <View style={styles.header}>
+                <Text style={styles.headerText}>Let's log your symptoms.</Text>
+            </View>
+            <View style={styles.body}>
+                <Text style={styles.bodyText}>Where does it hurt? Tell me about it, or snap a photo of you pointing to the area.</Text>
+            </View>
             <Modal visible={cameraVisible} animationType="slide">
                 <Camera style={styles.camera} type={Camera.Constants.Type.front} ref={cameraRef}>
                     <View style={styles.cameraContainer}>
                         {isCountingDown && <Text style={styles.countdownText}>{countdown}</Text>}
-                        {!isCountingDown && <TouchableOpacity onPress={startCountdown} style={styles.button}>
-                            <Text>Take Picture</Text>
+                        {!isCountingDown && <TouchableOpacity onPress={startCountdown} style={styles.cameraButton}>
+                            <Ionicons name="camera" size={50} color="white" />
                         </TouchableOpacity>}
                     </View>
                 </Camera>
@@ -241,26 +235,30 @@ const LogNewDiscomfortScreen = ({ route }) => {
             {!loading && !recordingReady && (
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={handleAudioRecording} style={styles.button}>
-                        <Text>{isRecording ? "Stop Recording" : "Press for Audio"}</Text>
+                        <Text style={styles.buttonText}>{isRecording ? "Stop Recording" : "Tell Hercules"}</Text>
+                        <Ionicons name="mic" size={32} color="white" />
                     </TouchableOpacity>
+                    {!isRecording && (
                     <TouchableOpacity onPress={() => {
                         setCameraVisible(true);
                         setIsCountingDown(false);
                     }} style={styles.button}>
-                        <Text>Press for Camera</Text>
+                        <Text style={styles.buttonText}>Show Hercules</Text>
+                        <Ionicons name="camera" size={32} color="white" />
                     </TouchableOpacity>
+                    )}
                 </View>
             )}
             {recordingReady && (
-                <>
-                    <Text>Recording Duration: {recordingDuration.toFixed(2)} seconds</Text>
+                
+                <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={submitAudio} style={styles.button}>
-                        <Text>Submit Recording</Text>
+                        <Text style={styles.buttonText}>Submit Recording</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleDeleteRecording} style={styles.button}>
-                        <Text>Delete Recording</Text>
+                        <Text style={styles.buttonText}>Delete Recording</Text>
                     </TouchableOpacity>
-                </>
+                </View>
             )}
             {loading && <ActivityIndicator size="large" />}
 
@@ -271,17 +269,77 @@ const LogNewDiscomfortScreen = ({ route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#FFFDEE',
+        flexDirection: 'column',
+        height: '100%',
+    },
+    top: {
+        width: '100%',
+        height: '12%',
+        justifyContent: 'flex-end',
+    },
+    backArrow: {
+        marginLeft: 18,
+        width: '10%',
+    },
+    header: {
+        width: '100%',
+        height: '13%',
+        justifyContent: 'center',
+    },
+    headerText: {
+        fontFamily: 'NohemiRegular',
+        fontSize: 35,
+        marginLeft: 30,
+        marginRight: 30
+    },
+    body: {
+        width: '100%',
+        height: '15%',
+        justifyContent: 'flex-end',
+        width: '100%',
+    },
+    bodyText: {
+        fontFamily: 'ApercuRegular',
+        fontSize: 20,
+        marginLeft: 30,
+        marginRight: 30
     },
     buttonContainer: {
-        flexDirection: 'column',
-        justifyContent: 'center',
+        width: '100%',
+        height: '40%',
+        alignItems: 'center',
+        marginBottom: 20,
+        marginTop: 30,
     },
     button: {
-        margin: 10,
-        padding: 20,
-        backgroundColor: 'lightblue',
+        width: '88%',
+        marginBottom: 10,
+        backgroundColor: '#292929',
+        borderRadius: 15,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingRight: 30
+    },
+    cameraButton: {
+        width: 100,
+        height: 100,
+        marginBottom: 10,
+        backgroundColor: '#292929',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 25,
+        marginTop: 650
+    },
+    buttonText: {
+        fontFamily: 'ApercuRegular',
+        fontSize: 20,
+        color: 'white',
+        textAlign: 'center',
+        padding: 18,
+        paddingLeft: 25
     },
     camera: {
         position: 'absolute',

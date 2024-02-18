@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -11,10 +11,23 @@ import WhenNewDiscomfortScreen from './screens/WhenNewDiscomfortScreen';
 import DescribeMotionScreen from './screens/DescribeMotionScreen';
 import FollowUpNewDiscomfortScreen from './screens/FollowUpNewDiscomfortScreen';
 import FinishLogNewDiscomfortScreen from './screens/FinishLogNewDiscomfortScreen';
+import WrappingUpNewDiscomfortScreen from './screens/WrappingUpNewDiscomfortScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import { DiscomfortProvider } from './contexts/DiscomfortContext';
 import { Ionicons } from '@expo/vector-icons';
+import * as Font from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 
+SplashScreen.preventAutoHideAsync();
+
+const fetchFonts = () => {
+  return Font.loadAsync({
+    'ApercuBold': require('./assets/fonts/apercu_bold_italic_pro.otf'),
+    'ApercuRegular': require('./assets/fonts/apercu_regular_pro.otf'),
+    'NohemiRegular': require('./assets/fonts/Nohemi-Regular.otf'),
+    'NohemiBold': require('./assets/fonts/Nohemi-Bold.otf'),
+  });
+};
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -50,12 +63,31 @@ function BottomTabNavigator() {
       })}
     >
       <Tab.Screen name="Summary" component={MainStackNavigator} />
-      <Tab.Screen name="Log" component={LogDiscomfortScreen} />
+      <Tab.Screen name="Log" component={LogStackNavigator} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
 
+function LogStackNavigator() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: '#FFFDEE' },
+      }}>
+      <Stack.Screen name="LogDiscomfortScreen" component={LogDiscomfortScreen} />
+      <Stack.Screen name="LogExistingDiscomfortScreen" component={LogExistingDiscomfortScreen} />
+      <Stack.Screen name="LogNewDiscomfortScreen" component={LogNewDiscomfortScreen} />
+      <Stack.Screen name="UpdateDiscomfortScreen" component={UpdateDiscomfortScreen} />
+      <Stack.Screen name="WhenNewDiscomfortScreen" component={WhenNewDiscomfortScreen} />
+      <Stack.Screen name="DescribeMotionScreen" component={DescribeMotionScreen} />
+      <Stack.Screen name="FollowUpNewDiscomfortScreen" component={FollowUpNewDiscomfortScreen} />
+      <Stack.Screen name="WrappingUpNewDiscomfortScreen" component={WrappingUpNewDiscomfortScreen} />
+      <Stack.Screen name="FinishLogNewDiscomfortScreen" component={FinishLogNewDiscomfortScreen} />
+    </Stack.Navigator>
+  );
+}
 
 function MainStackNavigator() {
   return (
@@ -109,11 +141,43 @@ function MainStackNavigator() {
             name="ProfileScreen"
             component={ProfileScreen}
           />
+          <Stack.Screen
+            name="WrappingUpNewDiscomfortScreen"
+            component={WrappingUpNewDiscomfortScreen}
+          />
     </Stack.Navigator>
   );
 }
 
 export default function App() {
+  const [fontLoaded, setFontLoaded] = useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Load fonts
+        await Font.loadAsync({
+          'ApercuBold': require('./assets/fonts/apercu_bold_italic_pro.otf'),
+          'ApercuRegular': require('./assets/fonts/apercu_regular_pro.otf'),
+          'NohemiRegular': require('./assets/fonts/Nohemi-Regular.otf'),
+          'NohemiBold': require('./assets/fonts/Nohemi-Bold.otf'),
+        });
+        setFontLoaded(true);
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Hide the splash screen once everything is ready
+        SplashScreen.hideAsync();
+      }
+    }
+
+    prepare();
+  }, []);
+
+  if (!fontLoaded) {
+    return null; // Return null or a loading indicator while fonts are loading
+  }
+
   return (
     <DiscomfortProvider>
       <NavigationContainer>
